@@ -6,35 +6,58 @@ const Lead = require("./models/Lead");
 
 const app = express();
 
+// Middleware
 app.use(cors());
 app.use(express.json());
 
 // MongoDB Connection
-mongoose.connect("mongodb://127.0.0.1:27017/crm");
+mongoose.connect(process.env.MONGO_URI)
+  .then(() => console.log("MongoDB Connected"))
+  .catch(err => console.log(err));
+
+// Routes
 
 // ADD LEAD
 app.post("/add", async (req, res) => {
-  const lead = new Lead(req.body);
-  await lead.save();
-  res.send("Lead Added");
+  try {
+    const lead = new Lead(req.body);
+    await lead.save();
+    res.send("Lead Added");
+  } catch (err) {
+    res.status(500).send(err);
+  }
 });
 
 // GET LEADS
 app.get("/leads", async (req, res) => {
-  const leads = await Lead.find();
-  res.json(leads);
+  try {
+    const leads = await Lead.find();
+    res.json(leads);
+  } catch (err) {
+    res.status(500).send(err);
+  }
 });
 
-// UPDATE STATUS
+// UPDATE
 app.put("/update/:id", async (req, res) => {
-  await Lead.findByIdAndUpdate(req.params.id, req.body);
-  res.send("Updated");
+  try {
+    await Lead.findByIdAndUpdate(req.params.id, req.body);
+    res.send("Updated");
+  } catch (err) {
+    res.status(500).send(err);
+  }
 });
 
 // DELETE
 app.delete("/delete/:id", async (req, res) => {
-  await Lead.findByIdAndDelete(req.params.id);
-  res.send("Deleted");
+  try {
+    await Lead.findByIdAndDelete(req.params.id);
+    res.send("Deleted");
+  } catch (err) {
+    res.status(500).send(err);
+  }
 });
 
-app.listen(5000, () => console.log("Server running on 5000"));
+// PORT (IMPORTANT FOR DEPLOYMENT)
+const PORT = process.env.PORT || 5000;
+app.listen(PORT, () => console.log("Server running on " + PORT));
